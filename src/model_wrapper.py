@@ -50,7 +50,43 @@ class Model:
         indices = input_ids[0].detach().tolist()
         all_tokens = self.tokenizer.convert_ids_to_tokens(indices)
 
-        return output, all_tokens
+        return output, all_tokens, encoding
+    
+    # Return: List of 3 tupels (Start-Token, Start-Token probability), (End-Token, End-Token probability), (full answer, overall probability)
+    def get_predicted_tokens(self, logits, tokens):
+
+        prediction = []
+
+        start_logits = logits.start_logits
+        end_logits = logits.end_logits
+        all_tokens = tokens
+        
+        predicted_start_token = all_tokens[torch.argmax(start_logits)]
+        predicted_end_token = all_tokens[torch.argmax(end_logits)]
+        predicted_answer = str(all_tokens[torch.argmax(start_logits) : torch.argmax(end_logits)+1])
+
+        norm_start_logits = softmax(start_logits)
+        norm_end_logits = softmax(end_logits)
+
+        probability_start_token = norm_start_logits[0][torch.argmax(start_logits)].item()
+        probability_end_token = norm_end_logits[0][torch.argmax(end_logits)].item()
+        probability_answer = torch.mul(probability_start_token,probability_end_token).item()
+
+        prediction.append((predicted_start_token, probability_start_token))
+        prediction.append((predicted_end_token, probability_end_token))
+        prediction.append((predicted_answer, probability_answer)) 
+
+        return prediction
+
+    def get_answer_string(self,  logits, tokens):
+        start_logits = logits.start_logits
+        end_logits = logits.end_logits
+        all_tokens = tokens
+        
+        predicted_answer_tokens = all_tokens[torch.argmax(start_logits) : torch.argmax(end_logits)+1]
+        answer_string = self.tokenizer.convert_tokens_to_string(predicted_answer_tokens)
+
+        return answer_string
     
 ######################################################################################
     
@@ -137,38 +173,3 @@ class Model:
     def construct_attention_mask(self, input_ids):
         return torch.ones_like(input_ids)
 
-    # Return: List of 3 tupels (Start-Token, Start-Token probability), (End-Token, End-Token probability), (full answer, overall probability)
-    def get_predicted_tokens(self, logits, tokens):
-
-        prediction = []
-
-        start_logits = logits.start_logits
-        end_logits = logits.end_logits
-        all_tokens = tokens
-        
-        predicted_start_token = all_tokens[torch.argmax(start_logits)]
-        predicted_end_token = all_tokens[torch.argmax(end_logits)]
-        predicted_answer = str(all_tokens[torch.argmax(start_logits) : torch.argmax(end_logits)+1])
-
-        norm_start_logits = softmax(start_logits)
-        norm_end_logits = softmax(end_logits)
-
-        probability_start_token = norm_start_logits[0][torch.argmax(start_logits)].item()
-        probability_end_token = norm_end_logits[0][torch.argmax(end_logits)].item()
-        probability_answer = torch.mul(probability_start_token,probability_end_token).item()
-
-        prediction.append((predicted_start_token, probability_start_token))
-        prediction.append((predicted_end_token, probability_end_token))
-        prediction.append((predicted_answer, probability_answer)) 
-
-        return prediction
-
-    def get_answer_string(self,  logits, tokens):
-        start_logits = logits.start_logits
-        end_logits = logits.end_logits
-        all_tokens = tokens
-        
-        predicted_answer_tokens = all_tokens[torch.argmax(start_logits) : torch.argmax(end_logits)+1]
-        answer_string = self.tokenizer.convert_tokens_to_string(predicted_answer_tokens)
-
-        return answer_string
