@@ -18,7 +18,7 @@ class ExplanationObjectForQuestionType:
         self.answer_length_info_series = self._get_answer_length_range() 
         
         # -- details about the token importance from differnt perspectives
-        # self.token_importance_perspectives_dict = self._get_token_details()
+        self.token_importance_perspectives_dict = self._get_token_details()
         
         # -- details about the end token
         
@@ -28,7 +28,7 @@ class ExplanationObjectForQuestionType:
         
         res = f"""
         === {self.qustion_type.upper()} ===
-        Die Antwort wird wahrscheinlich zwischen {self.answer_length_info_series[0]} und {self.answer_length_info_series[1]} Worten lang sein.
+        Die Antwortlänge beträgt in 75% der Fälle zwischen {self.answer_length_info_series[0]} und {self.answer_length_info_series[1]} Worten.
         """
         
         return res
@@ -59,8 +59,8 @@ class ExplanationObjectForQuestionType:
                 print(f"No data for {token_sub_set_description} {x_value} {y_value}")
                 
     def _get_relevant_data(self, data):
-        answer_context_df = data[['prediction', 'context']]
-        answer_context_df['prediction_length'] = answer_context_df.apply(
+        answer_context_df = data
+        data['prediction_length'] = answer_context_df.apply(
             lambda row:len(row['prediction'].split()), axis = 1
         )
         answer_context_df['context_length'] = answer_context_df.apply(lambda row: len(row['context'].split()), axis = 1)
@@ -72,29 +72,30 @@ class ExplanationObjectForQuestionType:
     
         return relevant_answer_lengths_df
     
-    def _get_answer_length_range(self, mode = 'box_plot'):
+    def _get_answer_length_range(self):
         
-        if mode == 'quantiles':
-            # remove outliers because GELECTRA sometimes findes no answer or answers with the full context as output
-            q_low = self.data_df["prediction_length"].quantile(0.01)
-            q_hi  = self.data_df["prediction_length"].quantile(0.99)
 
-            df_filtered = self.data_df[(self.data_df["prediction_length"] < q_hi) & (self.data_df["prediction_length"] > q_low)]
+        # remove outliers because GELECTRA sometimes findes no answer or answers with the full context as output
+        q_low = self.data_df["prediction_length"].quantile(0.125)
+        q_hi  = self.data_df["prediction_length"].quantile(0.875)
 
-            # return series object containing count, mean, std, min, max, 25%, 50% and 75% quantiles
-            details =  df_filtered['prediction_length'].describe()
-            
-            return [details['25%'], details['75%']]
-                                 
-        if mode == 'box_plot':
-            box_plot_answer_lengths = plt.boxplot(self.data_df['prediction_length'].tolist())
-            
-            return [int(item.get_ydata()[1]) for item in box_plot_answer_lengths['whiskers']]
+        df_filtered = self.data_df[(self.data_df["prediction_length"] < q_hi) & (self.data_df["prediction_length"] > q_low)]
+
+        # return series object containing count, mean, std, min, max, 25%, 50% and 75% quantiles
+        details =  df_filtered['prediction_length'].describe()
+
+        return [details['min'], details['max']]
+
+        # in case I wanted to use boxplots and the whiskers values as bounds
+        # if mode == 'box_plot':
+        #     box_plot_answer_lengths = plt.boxplot(self.data_df['prediction_length'].tolist())
+        #
+        #     return [int(item.get_ydata()[1]) for item in box_plot_answer_lengths['whiskers']]
     
     def _get_token_details(self):
         
         question_tokens_with_weights_dict = src.analyzer.sort_tokens_in_categories(self.data_df['explanation'].tolist())
-        percentile_1 = int(len(data_points_df) * 0.01)
+        percentile_1 = int(len(self.data_df) * 0.01)
         
         # res dict with all possible combinations
         # the possible combinations:
