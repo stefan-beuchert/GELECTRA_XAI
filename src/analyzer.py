@@ -113,3 +113,72 @@ def display_frequencies(tokens_dict, max_tokens = 15, mode = 'count', target = '
 
     display_html(start_token_styler._repr_html_() + start_token_positive_styler._repr_html_() + start_token_negative_styler._repr_html_() + 
                  end_token_styler._repr_html_() + end_token_positive_styler._repr_html_() + end_token_negative_styler._repr_html_(), raw=True)
+
+def get_frequencies_as_data_frame_in_comparison_to_expected_frequencies(token_dimension, data_df, tag_list):
+
+    # token_dimension: string value. Either 'token', 'pos_tag' or 'ner_tag' depending of the desired abstraction layer
+    # data_df: data as data frame from 'data/Data_Preparation folder
+    # tag_list: list of strings containing all possible tags
+
+    # get list of all explanations (containing every data point with info about each token)
+    explanation_list = data_df.explanation.tolist()
+
+    # create empty dicts to count POS tags
+    general_counter_for_tag = {tag: 0 for tag in tag_list}
+    lime_highlights_for_start_tokens__counter_for_tag = {tag: 0 for tag in tag_list}
+    lime_highlights_for_end_tokens__counter_for_tag = {tag: 0 for tag in tag_list}
+
+    # for each token in each data point
+    for explanation in explanation_list:
+
+        # get lime highlights for start and end token subsets
+        lime_highlights_for_start_token = explanation[explanation['start_token_weight'].notnull()]
+        lime_highlights_for_end_token = explanation[explanation['end_token_weight'].notnull()]
+
+        # get total count of each POS tag for that data point
+        total_count_of_each_tag = explanation[token_dimension].value_counts()
+        total_count_of_each_tag_for_start_token_highlights = lime_highlights_for_start_token[token_dimension].value_counts()
+        total_count_of_each_tag_for_end_token_highlights = lime_highlights_for_end_token[token_dimension].value_counts()
+
+        # convert panda.Series to dicts for better extraction of values
+        total_count_of_each_tag_dict = total_count_of_each_tag.to_dict()
+        total_count_of_each_tag_for_start_token_highlights_dict = total_count_of_each_tag_for_start_token_highlights.to_dict()
+        total_count_of_each_tag_for_end_token_highlights_dict = total_count_of_each_tag_for_end_token_highlights.to_dict()
+
+        # save POS counts in designated dicts
+        for tag in total_count_of_each_tag_dict:
+            general_counter_for_tag[tag] += total_count_of_each_tag_dict[tag]
+
+        for tag in total_count_of_each_tag_for_start_token_highlights_dict:
+            lime_highlights_for_start_tokens__counter_for_tag[tag] += \
+            total_count_of_each_tag_for_start_token_highlights_dict[tag]
+
+        for tag in total_count_of_each_tag_for_end_token_highlights_dict:
+            lime_highlights_for_end_tokens__counter_for_tag[tag] += \
+            total_count_of_each_tag_for_end_token_highlights_dict[tag]
+
+    # safe data in df
+    frequencies_df = pd.DataFrame([general_counter_for_tag,
+                                   lime_highlights_for_start_tokens__counter_for_tag,
+                                   lime_highlights_for_end_tokens__counter_for_tag])
+
+    frequencies_df = frequencies_df.T
+    frequencies_df = frequencies_df.rename({0: 'general total', 1: 'start token total', 2: 'end token total'},
+                                           axis='columns')
+
+    frequencies_df['general percentage'] = frequencies_df['general total'] / frequencies_df['general total'].sum()
+    frequencies_df['start token percentage'] = frequencies_df['start token total'] / frequencies_df[
+        'start token total'].sum()
+    frequencies_df['end token percentage'] = frequencies_df['end token total'] / frequencies_df['end token total'].sum()
+
+    frequencies_df['start token deviation from general'] = (frequencies_df['start token percentage'] - frequencies_df[
+        'general percentage']) / frequencies_df['general percentage']
+    frequencies_df['end token deviation from general'] = (frequencies_df['end token percentage'] - frequencies_df[
+        'general percentage']) / frequencies_df['general percentage']
+
+    frequencies_df['start token total deviation'] = frequencies_df['start token total'] - (
+                frequencies_df['general percentage'] * frequencies_df['start token total'].sum())
+    frequencies_df['end token total deviation'] = frequencies_df['end token total'] - (
+                frequencies_df['general percentage'] * frequencies_df['end token total'].sum())
+
+    return frequencies_df
