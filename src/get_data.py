@@ -105,7 +105,7 @@ def enhance_data_with_question_type(data_df):
                         question_type = question_word
 
         if question_type is None:
-            print(f'{question} - has no question type')
+            # print(f'{question} - has no question type')
             question_type = 'undefined'
 
         return question_type

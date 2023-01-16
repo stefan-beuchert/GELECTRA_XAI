@@ -1,4 +1,7 @@
 import src.analyzer
+import config
+from src.analyzer import get_frequencie_derivation_as_data_frame
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -9,26 +12,26 @@ class ExplanationObjectForQuestionType:
         # VARIABLES
         
         # question type
-        self.qustion_type = question_type
+        self.question_type = question_type
         
         # relevant data
         self.data_df = self._get_relevant_data(data_points_df)
         
-        # -- answer lengt
-        self.answer_length_info_series = self._get_answer_length_range() 
-        
-        # -- details about the token importance from differnt perspectives
+        # -- details about the token importance from different perspectives
         self.token_importance_perspectives_dict = self._get_token_details()
         
-        # -- details about the end token
+        # -- data for to str method
+        self.to_str_data = self._get_important_data_for_to_str_method()
         
         # -- details about important word in the answer
         
     def __str__(self):
         
         res = f"""
-        === {self.qustion_type.upper()} ===
-        Die Antwortlänge beträgt in 75% der Fälle zwischen {self.answer_length_info_series[0]} und {self.answer_length_info_series[1]} Worten.
+        === {self.question_type.upper()} ===
+        Die Antwortlänge beträgt in 75% der Fälle zwischen {int(self.to_str_data['min'])} und {int(self.to_str_data['max'])} Worten.
+        {self.to_str_data['top_ner_tag']} kommt bei diesem Fragetyp {int(self.to_str_data['ner_increase'] * 100)} % häufiger vor.
+        {self.to_str_data['top_pos_tag']} kommt bei diesem Fragetyp {int(self.to_str_data['pos_increase'] * 100)} % häufiger vor.
         """
         
         return res
@@ -68,29 +71,51 @@ class ExplanationObjectForQuestionType:
         relevant_answer_lengths_df = answer_context_df[(answer_context_df['prediction_length'] > 0) 
                                                        & (answer_context_df['prediction_length'] < answer_context_df['context_length'])]
         
-        print(f'out of {len(answer_context_df)} data points, {len(answer_context_df) - len(relevant_answer_lengths_df)} have been deleted, because GELECTRA could not finde a sufficent answer. {len(relevant_answer_lengths_df)} data point remaining')
+        print(f'out of {len(answer_context_df)} data points, {len(answer_context_df) - len(relevant_answer_lengths_df)} have been deleted, because GELECTRA could not find a sufficient answer. {len(relevant_answer_lengths_df)} data point remaining')
     
         return relevant_answer_lengths_df
-    
-    def _get_answer_length_range(self):
-        
 
-        # remove outliers because GELECTRA sometimes findes no answer or answers with the full context as output
-        q_low = self.data_df["prediction_length"].quantile(0.125)
-        q_hi  = self.data_df["prediction_length"].quantile(0.875)
+    def _get_important_data_for_to_str_method(self):
 
-        df_filtered = self.data_df[(self.data_df["prediction_length"] < q_hi) & (self.data_df["prediction_length"] > q_low)]
+        def get_answer_length_range(data_df):
+            # remove outliers because GELECTRA sometimes findes no answer or answers with the full context as output
+            q_low = data_df["prediction_length"].quantile(0.125)
+            q_hi = data_df["prediction_length"].quantile(0.875)
 
-        # return series object containing count, mean, std, min, max, 25%, 50% and 75% quantiles
-        details =  df_filtered['prediction_length'].describe()
+            df_filtered = data_df[
+                (data_df["prediction_length"] < q_hi) & (data_df["prediction_length"] > q_low)]
 
-        return [details['min'], details['max']]
+            # return series object containing count, mean, std, min, max, 25%, 50% and 75% quantiles
+            details = df_filtered['prediction_length'].describe()
 
-        # in case I wanted to use boxplots and the whiskers values as bounds
-        # if mode == 'box_plot':
-        #     box_plot_answer_lengths = plt.boxplot(self.data_df['prediction_length'].tolist())
-        #
-        #     return [int(item.get_ydata()[1]) for item in box_plot_answer_lengths['whiskers']]
+            return {'min' : details['min'], 'max' : details['max']}
+
+            # in case I wanted to use boxplots and the whiskers values as bounds
+            # if mode == 'box_plot':
+            #     box_plot_answer_lengths = plt.boxplot(self.data_df['prediction_length'].tolist())
+            #
+            #     return [int(item.get_ydata()[1]) for item in box_plot_answer_lengths['whiskers']]
+
+        answer_lengt_dict = get_answer_length_range(self.data_df)
+
+        pos_frequencies = get_frequencie_derivation_as_data_frame('pos_tag', self.data_df, config.POS_tag_list, 'self.question_type')
+        pos_frequencies = pos_frequencies.reset_index(drop=True)
+        ner_frequencies = get_frequencie_derivation_as_data_frame('ner_tag', self.data_df, config.NER_tag_list, 'self.question_type')
+        ner_frequencies = ner_frequencies.reset_index(drop=True)
+
+        frequenie_insights_dict = {
+            # ner
+            'top_ner_tag' :  ner_frequencies.loc[0]['tag'],
+            'ner_increase': ner_frequencies.loc[0]['percentage difference'],
+
+            # pos
+            'top_pos_tag': pos_frequencies.loc[0]['tag'],
+            'pos_increase': pos_frequencies.loc[0]['percentage difference']
+        }
+
+        all_to_str_infos_dict = {**answer_lengt_dict, **frequenie_insights_dict}
+
+        return all_to_str_infos_dict
     
     def _get_token_details(self):
         

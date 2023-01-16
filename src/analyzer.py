@@ -182,3 +182,39 @@ def get_frequencies_as_data_frame_in_comparison_to_expected_frequencies(token_di
                 frequencies_df['general percentage'] * frequencies_df['end token total'].sum())
 
     return frequencies_df
+
+def get_frequencie_derivation_as_data_frame(token_dimension, data_df, tag_list, question_type):
+    frequencies_df = get_frequencies_as_data_frame_in_comparison_to_expected_frequencies(token_dimension, data_df, tag_list)
+
+    df_data_list = []
+    element_count = len(data_df)
+
+    # get all tags and vavlues for start token highlights
+    start_token_deviation_from_general = frequencies_df['start token deviation from general']
+
+    for tag, value in start_token_deviation_from_general.items():
+        new_data_point = {
+            'question type': question_type,
+            'token type': 'start_token_highlight',
+            'tag': tag,
+            'percentage difference': value,
+            'total samples available': element_count
+        }
+
+        df_data_list.append(new_data_point)
+
+    # get all tags and vavlues for end token highlights
+    end_token_deviation_from_general = frequencies_df['end token deviation from general']
+
+    for tag, value in end_token_deviation_from_general.items():
+        new_data_point = {
+            'question type': question_type,
+            'token type': 'end_token_highlight',
+            'tag': tag,
+            'percentage difference': value,
+            'total samples available': element_count
+        }
+
+        df_data_list.append(new_data_point)
+
+    return pd.DataFrame(df_data_list).sort_values('percentage difference', ascending = False)
