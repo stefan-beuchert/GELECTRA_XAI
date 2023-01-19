@@ -2,6 +2,8 @@ import src.analyzer
 import config
 from src.analyzer import get_frequencie_derivation_as_data_frame
 
+import spacy
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -28,10 +30,11 @@ class ExplanationObjectForQuestionType:
     def __str__(self):
         
         res = f"""
-        === {self.question_type.upper()} ===
-        Die Antwortlänge beträgt in 75% der Fälle zwischen {int(self.to_str_data['min'])} und {int(self.to_str_data['max'])} Worten.
-        {self.to_str_data['top_ner_tag']} kommt bei diesem Fragetyp {int(self.to_str_data['ner_increase'] * 100)} % häufiger vor.
-        {self.to_str_data['top_pos_tag']} kommt bei diesem Fragetyp {int(self.to_str_data['pos_increase'] * 100)} % häufiger vor.
+        GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen {int(self.to_str_data['min'])} und {int(self.to_str_data['max'])} Worten.
+        Dabei stellt das Start-Wort in {int(self.to_str_data['top_pos_for_start_token_probability'] + self.to_str_data['second_top_pos_for_start_token_probability'])} % der Fälle ein {self.to_str_data['top_pos_for_start_token']} oder {self.to_str_data['second_top_pos_for_start_token']} da.
+        Für das End-Wort wählt GELECTRA {self.to_str_data['top_pos_for_end_token']} oder {self.to_str_data['second_top_pos_for_end_token']} in {int(self.to_str_data['top_pos_for_end_token_probability'] + self.to_str_data['second_top_pos_for_end_token_probability'])} % der Fälle.
+        
+        Generell spricht GELECTRA {self.to_str_data['top_pos_tag']} (+{int(self.to_str_data['pos_increase'] * 100)}%) und {self.to_str_data['top_ner_tag']} (+{int(self.to_str_data['ner_increase'] * 100)}%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
         """
         
         return res
@@ -96,14 +99,81 @@ class ExplanationObjectForQuestionType:
             #
             #     return [int(item.get_ydata()[1]) for item in box_plot_answer_lengths['whiskers']]
 
-        answer_lengt_dict = get_answer_length_range(self.data_df)
+        def get_pos_preferences_for_start_and_end_tokens(data_df):
+
+            # get prediction tokens
+            prediction_list = data_df['prediction'].tolist()
+            prediction_list_split = [p.split() for p in prediction_list]
+
+            prediction_list_split_nan = []
+            for p in prediction_list_split:
+                if len(p) == 0:
+                    prediction_list_split_nan.append([None])
+                else:
+                    prediction_list_split_nan.append(p)
+
+            # get prediction pos
+            nlp = spacy.load("de_core_news_sm")
+
+            pos_prediction_list = []
+
+            for p in prediction_list_split_nan:
+                if p[0] is not None:
+                    nlp_tags = nlp(' '.join(p))
+                    list_pos_tags = [i.pos_ for i in nlp_tags]
+
+                    pos_prediction_list.append(list_pos_tags)
+
+                else:
+                    pos_prediction_list.append(p)
+
+            data_df['start_token'] = [p[0] for p in prediction_list_split_nan]
+            data_df['end_token'] = [p[-1] for p in prediction_list_split_nan]
+
+            data_df['start_token_pos'] = [p[0] for p in pos_prediction_list]
+            data_df['end_token_pos'] = [p[-1] for p in pos_prediction_list]
+
+            data_df['start_token'].fillna(value=np.nan, inplace=True)
+            data_df['end_token'].fillna(value=np.nan, inplace=True)
+            data_df['start_token_pos'].fillna(value=np.nan, inplace=True)
+            data_df['end_token_pos'].fillna(value=np.nan, inplace=True)
+
+            start_token_pos_df = data_df['start_token_pos'].value_counts().to_frame()
+            start_token_pos_df['percent'] = (start_token_pos_df['start_token_pos'] / start_token_pos_df[
+                'start_token_pos'].sum()) * 100
+
+            end_token_pos_df = data_df['end_token_pos'].value_counts().to_frame()
+            end_token_pos_df['percent'] = (end_token_pos_df['end_token_pos'] / end_token_pos_df[
+                'end_token_pos'].sum()) * 100
+
+            start_token_pos_df = start_token_pos_df.sort_values(by=['percent'], ascending=False)
+            end_token_pos_df = end_token_pos_df.sort_values(by=['percent'], ascending=False)
+
+            res = {
+                'top_pos_for_start_token': start_token_pos_df.index[0],
+                'top_pos_for_start_token_probability': start_token_pos_df.iloc[0]['percent'],
+
+                'second_top_pos_for_start_token': start_token_pos_df.index[1],
+                'second_top_pos_for_start_token_probability': start_token_pos_df.iloc[1]['percent'],
+
+                'top_pos_for_end_token': end_token_pos_df.index[0],
+                'top_pos_for_end_token_probability': end_token_pos_df.iloc[0]['percent'],
+
+                'second_top_pos_for_end_token': end_token_pos_df.index[1],
+                'second_top_pos_for_end_token_probability': end_token_pos_df.iloc[1]['percent'],
+            }
+
+            return res
+
+        answer_length_dict = get_answer_length_range(self.data_df)
+        start_end_token_pos_dict = get_pos_preferences_for_start_and_end_tokens(self.data_df)
 
         pos_frequencies = get_frequencie_derivation_as_data_frame('pos_tag', self.data_df, config.POS_tag_list, 'self.question_type')
         pos_frequencies = pos_frequencies.reset_index(drop=True)
         ner_frequencies = get_frequencie_derivation_as_data_frame('ner_tag', self.data_df, config.NER_tag_list, 'self.question_type')
         ner_frequencies = ner_frequencies.reset_index(drop=True)
 
-        frequenie_insights_dict = {
+        frequencies_insights_dict = {
             # ner
             'top_ner_tag' :  ner_frequencies.loc[0]['tag'],
             'ner_increase': ner_frequencies.loc[0]['percentage difference'],
@@ -113,7 +183,7 @@ class ExplanationObjectForQuestionType:
             'pos_increase': pos_frequencies.loc[0]['percentage difference']
         }
 
-        all_to_str_infos_dict = {**answer_lengt_dict, **frequenie_insights_dict}
+        all_to_str_infos_dict = {**answer_length_dict, **frequencies_insights_dict, **start_end_token_pos_dict}
 
         return all_to_str_infos_dict
     
