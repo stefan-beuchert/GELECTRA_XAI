@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import warnings
+import unicodedata
 
 # config
 local_path_folder = './data/GermanQuAD_raw/'
@@ -113,5 +114,30 @@ def enhance_data_with_question_type(data_df):
     question_list = data_df['question'].tolist()
     question_type_list = [identify_question_type(q) for q in question_list]
     data_df['question_type'] = question_type_list
+
+    return data_df
+
+def enhance_data_with_correctness_of_the_prediction(data_df):
+    def check_if_prediction_is_correct(row):
+
+        prediction = str.lower(row['prediction'])
+        possible_answers_list_of_dicts = row['answers']
+
+        possible_answers_list = [str.lower(answer_dict['text']) for answer_dict in possible_answers_list_of_dicts]
+
+        for possible_answer in possible_answers_list:
+
+            # decode data to reduce errors like "−27\xa0°C" which should be "−27 °C"
+            possible_answer_decoded = unicodedata.normalize("NFKD", possible_answer)
+
+            # also decode the prediction, just to make sure both have the same format
+            prediction_decoded = unicodedata.normalize("NFKD", prediction)
+
+            if possible_answer_decoded == prediction_decoded:
+                return True
+
+        return False
+
+    data_df['prediction_correct'] = data_df.apply(lambda row: check_if_prediction_is_correct(row), axis=1)
 
     return data_df
