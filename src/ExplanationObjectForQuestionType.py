@@ -29,13 +29,15 @@ class ExplanationObjectForQuestionType:
         
     def __str__(self):
         
-        res = f"""
-        GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen {int(self.to_str_data['min'])} und {int(self.to_str_data['max'])} Worten.
-        Dabei stellt das Start-Wort in {int(self.to_str_data['top_pos_for_start_token_probability'] + self.to_str_data['second_top_pos_for_start_token_probability'])} % der Fälle ein {self.to_str_data['top_pos_for_start_token']} oder {self.to_str_data['second_top_pos_for_start_token']} da.
-        Für das End-Wort wählt GELECTRA {self.to_str_data['top_pos_for_end_token']} oder {self.to_str_data['second_top_pos_for_end_token']} in {int(self.to_str_data['top_pos_for_end_token_probability'] + self.to_str_data['second_top_pos_for_end_token_probability'])} % der Fälle.
-        
-        Generell spricht GELECTRA {self.to_str_data['top_pos_tag']} (+{int(self.to_str_data['pos_increase'] * 100)}%) und {self.to_str_data['top_ner_tag']} (+{int(self.to_str_data['ner_increase'] * 100)}%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
-        """
+        res = \
+            f"""
+### {self.question_type} ###
+GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen {int(self.to_str_data['min'])} und {int(self.to_str_data['max'])} Worten.
+Dabei stellt das Start-Wort in {int(self.to_str_data['top_pos_for_start_token_probability'] + self.to_str_data['second_top_pos_for_start_token_probability'])} % der Fälle ein {self.to_str_data['top_pos_for_start_token']} oder {self.to_str_data['second_top_pos_for_start_token']} dar.
+Für das End-Wort wählt GELECTRA {config.POS_tag_dict[self.to_str_data['top_pos_for_end_token']]} oder {config.POS_tag_dict[self.to_str_data['second_top_pos_for_end_token']]} in {int(self.to_str_data['top_pos_for_end_token_probability'] + self.to_str_data['second_top_pos_for_end_token_probability'])} % der Fälle.
+
+Generell spricht GELECTRA {config.POS_tag_dict[self.to_str_data['top_pos_tag']]} (+{int(self.to_str_data['pos_increase'] * 100)}%) und {config.NER_tag_dict[self.to_str_data['top_ner_tag']]} (+{int(self.to_str_data['ner_increase'] * 100)}%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
+            """
         
         return res
     
