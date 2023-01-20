@@ -1,33 +1,37 @@
 ### was ###
 GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen 2 und 26 Worten.
-Dabei stellt das Start-Wort in 50 % der Fälle ein DET oder NOUN dar.
+Dabei stellt das Start-Wort in 50 % der Fälle ein Bestimmungswort oder Nomen dar.
 Für das End-Wort wählt GELECTRA Nomen oder Eigennamen in 63 % der Fälle.
 
-Generell spricht GELECTRA Pronomen (+264%) und Ortsangaben (+14%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
+Generell spricht GELECTRA Pronomen (+264%) und Ortsangaben (+14%) eine
+überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
 
 
 ### wie ###
 GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen 2 und 26 Worten.
-Dabei stellt das Start-Wort in 30 % der Fälle ein ADP oder DET dar.
+Dabei stellt das Start-Wort in 30 % der Fälle ein Adposition oder Bestimmungswort dar.
 Für das End-Wort wählt GELECTRA Nomen oder Eigennamen in 60 % der Fälle.
 
-Generell spricht GELECTRA Adverb (+104%) und Diverses (+14%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
+Generell spricht GELECTRA Adverb (+104%) und Diverses (+14%) eine
+überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
 
 
 ### wann ###
 GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen 2 und 6 Worten.
-Dabei stellt das Start-Wort in 75 % der Fälle ein ADP oder NUM dar.
+Dabei stellt das Start-Wort in 75 % der Fälle ein Adposition oder Zahl dar.
 Für das End-Wort wählt GELECTRA Zahlen oder Nomen in 83 % der Fälle.
 
-Generell spricht GELECTRA Satzzeichen (+313%) und Ortsangaben (+29%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
+Generell spricht GELECTRA Satzzeichen (+313%) und Ortsangaben (+29%) eine
+überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
 
 
 ### welcher ###
 GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen 2 und 8 Worten.
-Dabei stellt das Start-Wort in 45 % der Fälle ein NOUN oder PROPN dar.
+Dabei stellt das Start-Wort in 45 % der Fälle ein Nomen oder Eigennamen dar.
 Für das End-Wort wählt GELECTRA Eigennamen oder Nomen in 83 % der Fälle.
 
-Generell spricht GELECTRA Satzzeichen (+628%) und Ortsangaben (+47%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
+Generell spricht GELECTRA Satzzeichen (+628%) und Ortsangaben (+47%) eine
+überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
 
 
 ### wer ###
@@ -46,17 +50,19 @@ Für das End-Wort wählt GELECTRA Zahlen oder Nomen in 87 % der Fälle.
 Generell spricht GELECTRA Zahlen (+148%) und  (+4%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
 
 
-### welcher ###
-GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen 2 und 8 Worten.
-Dabei stellt das Start-Wort in 45 % der Fälle ein NOUN oder PROPN dar.
-Für das End-Wort wählt GELECTRA Eigennamen oder Nomen in 83 % der Fälle.
+### welche ###
+GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen 2 und 29 Worten.
+Dabei stellt das Start-Wort in 46 % der Fälle ein Nomen oder Bestimmungswort dar.
+Für das End-Wort wählt GELECTRA Nomen oder Eigennamen in 78 % der Fälle.
 
-Generell spricht GELECTRA Satzzeichen (+628%) und Ortsangaben (+47%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
+Zudem spricht GELECTRA Leerzeichen (+278%) und Organisationen (+78%) eine
+überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
 
 
 ### wo ###
 GELECTRA gibt bei ähnlichen Fragen mit 75% Wahrscheinlichkeit eine Antwort zwischen 3 und 17 Worten.
-Dabei stellt das Start-Wort in 73 % der Fälle ein ADP oder DET dar.
+Dabei stellt das Start-Wort in 73 % der Fälle ein Adposition oder Bestimmungswort dar.
 Für das End-Wort wählt GELECTRA Eigennamen oder Nomen in 93 % der Fälle.
 
-Generell spricht GELECTRA Bindeworten (wenn, falls, während, ...) (+119%) und Ortsangaben (+86%) eine überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
+Generell spricht GELECTRA Bindeworten (wenn, falls, während, ...) (+119%) und Ortsangaben (+86%) eine
+überdurchschnittlich hohe Relevanz bei der Auswahl der Antwort zu.
