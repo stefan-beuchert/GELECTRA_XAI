@@ -1,4 +1,4 @@
-# GELECTRA_XAI
+# How does an LLM think?
 This repository contains the code for the following project:
 
 As the popularity of large language models (LLMs) increases, so does the demand for the ex-
